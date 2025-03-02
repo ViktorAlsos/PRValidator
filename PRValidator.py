@@ -1,5 +1,5 @@
-import openpyxl
 import re
+import datetime
 from openpyxl import load_workbook
 
 kommuneInfo = {
@@ -68,27 +68,61 @@ def find_errors(path):
         dirSharedWith = row[12].value
 
 
-        validateKommune(kommune=kommune, kommunenr=kommunenr, rad=row[0].row)
+        validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
 
-
-
-        if(personnr is None):
+        if(archiveCreator is None):
             print(f'Manglende personnummer på linje {row[0].row}')
-        elif not re.match(r'^\d{5}$', str(personnr)):
-            print(f'Feil personnummer på linje {row[0].row} Verdi: {personnr}')
+
+        validateBirthDate(birthDate=birthDate, row=row[0].row)
+        # validatePersonnr(personnr=personnr, row=row[0].row)
+        
 
 
-def validateKommune(kommune, kommunenr, rad):
+
+def validateKommune(kommune, kommunenr, row):
+
+    valid = True
 
     if kommune not in kommuneInfo.values():
-        print(f'Feil eller manglende kommune på rad: {rad}')
+        print(f'Feil eller manglende kommune på rad: {row}')
+        valid = False
+
     if kommunenr not in kommuneInfo.keys():
-        print(f'Feil eller manglende kommunenummer på rad: {rad}')
+        print(f'Feil eller manglende kommunenummer på rad: {row}')
+        valid = False
+
+    if not valid:
+        return
 
     if (kommune != kommuneInfo.get(kommunenr)):
-        print(f'Kommune har feil kommunenummer på rad: {rad}')
+        print(f'Kommune har feil kommunenummer på rad: {row}')
 
-    
+
+def validateBirthDate(birthDate, row):
+
+    if(isinstance(birthDate, datetime.datetime)):
+        birthDate = birthDate.strftime('%d%m%Y')
+
+    if(birthDate is not None):
+        birthDate = str(birthDate).strip(" ")
+
+    if birthDate is None or len(birthDate) == 0:
+        print(f'Manglende fødseldato på rad: {row}')
+        
+
+    elif not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', birthDate):
+        print(birthDate)
+        print(f'Feil format på fødselsdato på rad: {row}')
+
+def validatePersonnr(personnr, row):
+    if(personnr is None):
+            print(f'Manglende personnummer på linje {row[0].row}')
+    elif not re.match(r'^\d{5}$', str(personnr)):
+        print(f'Feil personnummer på linje {row[0].row} Verdi: {personnr}')
+
+
 
 
 find_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx')
+find_errors('D:/Viktor/Narvik kommune. Skolestyre.Fa 1-180. AKS_20_137.xlsx')
+find_errors('D:/Viktor/Vefsn Kommune HR Avdeling Personal sortert stigende på etternavn.xlsx')
