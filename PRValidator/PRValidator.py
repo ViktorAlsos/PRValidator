@@ -51,6 +51,8 @@ def find_errors(path):
     wb = load_workbook(path)
     ws = wb.active
 
+    error_string = ""
+
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
 
         kommune = row[0].value
@@ -68,14 +70,16 @@ def find_errors(path):
         dirSharedWith = row[12].value
 
 
-        validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
+
+        error_string += validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
 
         if(archiveCreator is None):
-            print(f'Manglende personnummer på linje {row[0].row}')
+            error_string += f'Manglende personnummer på linje {row[0].row}\n'
 
-        validateBirthDate(birthDate=birthDate, row=row[0].row)
-        # validatePersonnr(personnr=personnr, row=row[0].row)
+        error_string += validateBirthDate(birthDate=birthDate, row=row[0].row)
+        # error_string += validatePersonnr(personnr=personnr, row=row[0].row)
         
+    return error_string
 
 
 
@@ -83,19 +87,23 @@ def validateKommune(kommune, kommunenr, row):
 
     valid = True
 
+    text = ""
+
     if kommune not in kommuneInfo.values():
-        print(f'Feil eller manglende kommune på rad: {row}')
+        text += f'Feil eller manglende kommune på rad: {row}\n'
         valid = False
 
     if kommunenr not in kommuneInfo.keys():
-        print(f'Feil eller manglende kommunenummer på rad: {row}')
+        text += f'Feil eller manglende kommunenummer på rad: {row}\n'
         valid = False
 
     if not valid:
-        return
+        return text
 
     if (kommune != kommuneInfo.get(kommunenr)):
-        print(f'Kommune har feil kommunenummer på rad: {row}')
+        text += f'Kommune har feil kommunenummer på rad: {row}\n'
+
+    return text
 
 
 def validateBirthDate(birthDate, row):
@@ -107,22 +115,25 @@ def validateBirthDate(birthDate, row):
         birthDate = str(birthDate).strip(" ")
 
     if birthDate is None or len(birthDate) == 0:
-        print(f'Manglende fødseldato på rad: {row}')
+        return f'Manglende fødseldato på rad: {row}\n'
         
 
     elif not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', birthDate):
-        print(birthDate)
-        print(f'Feil format på fødselsdato på rad: {row}')
+        return f'Feil format på fødselsdato på rad: {row}\n'
+    
+    return ""
 
 def validatePersonnr(personnr, row):
     if(personnr is None):
-            print(f'Manglende personnummer på linje {row[0].row}')
+        return f'Manglende personnummer på linje {row}\n'
     elif not re.match(r'^\d{5}$', str(personnr)):
-        print(f'Feil personnummer på linje {row[0].row} Verdi: {personnr}')
+        return f'Feil personnummer på linje {row} Verdi: {personnr}\n'
+    
+    return ""
 
 
 
 
-find_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx')
-find_errors('D:/Viktor/Narvik kommune. Skolestyre.Fa 1-180. AKS_20_137.xlsx')
-find_errors('D:/Viktor/Vefsn Kommune HR Avdeling Personal sortert stigende på etternavn.xlsx')
+# print(find_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx'))
+# find_errors('D:/Viktor/Narvik kommune. Skolestyre.Fa 1-180. AKS_20_137.xlsx')
+# find_errors('D:/Viktor/Vefsn Kommune HR Avdeling Personal sortert stigende på etternavn.xlsx')
