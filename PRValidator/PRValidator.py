@@ -1,6 +1,8 @@
 import re
-import datetime
+from datetime import datetime
 from openpyxl import load_workbook
+import shutil
+import os
 
 kommuneInfo = {
     1804: 'Bodø',
@@ -108,7 +110,7 @@ def validateKommune(kommune, kommunenr, row):
 
 def validateBirthDate(birthDate, row):
 
-    if(isinstance(birthDate, datetime.datetime)):
+    if(isinstance(birthDate, datetime)):
         birthDate = birthDate.strftime('%d%m%Y')
 
     if(birthDate is not None):
@@ -118,10 +120,13 @@ def validateBirthDate(birthDate, row):
         return f'Manglende fødseldato på rad: {row}\n'
         
 
-    elif not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', birthDate):
+    elif validateBirtDateFormat(birthDate):
         return f'Feil format på fødselsdato på rad: {row}\n'
     
     return ""
+
+def validateBirtDateFormat(birthDate):
+    return not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', birthDate)
 
 def validatePersonnr(personnr, row):
     if(personnr is None):
@@ -131,9 +136,69 @@ def validatePersonnr(personnr, row):
     
     return ""
 
+def fix_errors(path):
+    copy_path = copy_excel_file(path)
+    wb = load_workbook(copy_path)
+    ws = wb.active
+
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+        birthDate = row[3].value
+
+        if(isinstance(birthDate, datetime)):
+            birthDate = birthDate.strftime('%d%m%Y')
+
+        if birthDate is None:
+            continue
+
+        birthDate = str(birthDate)
+
+        if(validateBirtDateFormat(birthDate)):
+            fixed = fix_birthDate(birthDate)
+            ws.cell(row=row[0].row, column=4).value = fixed
+            
+
+    wb.save(copy_path)
+    return "Korrigert fil lagret til: " + copy_path
+
+
+def copy_excel_file(source_path):
+    """
+    AI-generert
+    Copies an Excel file and adds '_korrigert' before the file extension.
+    The copy is saved in the same directory as the original.
+
+    :param source_path: Path to the original Excel file.
+    :return: Path to the copied file.
+    """
+    if not os.path.isfile(source_path):
+        raise FileNotFoundError(f"File not found: {source_path}")
+
+    base, ext = os.path.splitext(source_path)
+    copy_path = f"{base}_korrigert{ext}"
+
+    shutil.copy2(source_path, copy_path)
+    return copy_path
+
+
+def fix_birthDate(birthDate):
+
+    birthDate = strip_non_numeric(birthDate)
+    
+    if(validateBirtDateFormat(birthDate)):
+        print("Kunne ikke korigere: " + birthDate)
+
+
+    return birthDate
+
+
+def strip_non_numeric(s):
+    return re.sub(r'\D', '', s)  # \D matches any non-digit character
 
 
 
+# fix_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx')
+# fix_errors('D:/Viktor/Narvik kommune. Skolestyre.Fa 1-180. AKS_20_137.xlsx')
+# fix_errors('D:/Viktor/Vefsn Kommune HR Avdeling Personal sortert stigende på etternavn.xlsx')
 # print(find_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx'))
 # find_errors('D:/Viktor/Narvik kommune. Skolestyre.Fa 1-180. AKS_20_137.xlsx')
 # find_errors('D:/Viktor/Vefsn Kommune HR Avdeling Personal sortert stigende på etternavn.xlsx')

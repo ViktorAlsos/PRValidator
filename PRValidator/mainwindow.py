@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 #     pyside2-uic form.ui -o ui_form.py
 
 
-from PRValidator import find_errors
+from PRValidator import find_errors, fix_errors
 from ui_form import Ui_MainWindow
 
 class MainWindow(QMainWindow):
@@ -34,7 +34,9 @@ class MainWindow(QMainWindow):
         self.ui.text_result.update()
 
     def fix(self):
-        print("Halla")
+        fileName = self.ui.line_file.text()
+        self.ui.text_result.setPlainText(fix_errors(fileName))
+        self.ui.text_result.update()
     
 
 
