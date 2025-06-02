@@ -80,6 +80,7 @@ def find_errors(path):
 
         error_string += validateBirthDate(birthDate=birthDate, row=row[0].row)
         # error_string += validatePersonnr(personnr=personnr, row=row[0].row)
+        error_string += validateNames(lastName=lastName, firstName=firstName, middleName=middleName, row=row[0].row)
         
     return error_string
 
@@ -136,6 +137,32 @@ def validatePersonnr(personnr, row):
     
     return ""
 
+def validateNames(lastName, firstName, middleName, row):
+    text = ""
+    navnFormat = r'^[A-Za-zÆØÅæøå]+([\- ][A-Za-zÆØÅæøå]+)*$'
+
+    if(lastName):
+        lastName = lastName.strip()
+    if middleName:
+        middleName = middleName.strip()
+    if firstName:
+        firstName = firstName.strip()
+
+    if(lastName is None):
+        text += f'Manglende etternavn på linje {row}\n'
+    elif not re.match(navnFormat, lastName):
+        text += f'Feil format på etternavn på linje {row}\n'
+
+    if(firstName is None):
+        text += f'Manglende fornavn på linje {row}\n'
+    elif not re.match(navnFormat, firstName):
+        text += f'Feil format på forrnavn på linje {row}\n'
+
+    if(middleName is not None and not re.match(navnFormat, middleName)):
+        text += f'Mellomnavn på feil format på linje {row}\n'
+
+    return text
+
 def fix_errors(path):
     copy_path = copy_excel_file(path)
     wb = load_workbook(copy_path)
@@ -185,7 +212,7 @@ def fix_birthDate(birthDate):
     birthDate = strip_non_numeric(birthDate)
     
     if(validateBirtDateFormat(birthDate)):
-        print("Kunne ikke korigere: " + birthDate)
+        print("Kunne ikke korrigere: " + birthDate)
 
 
     return birthDate
@@ -193,6 +220,7 @@ def fix_birthDate(birthDate):
 
 def strip_non_numeric(s):
     return re.sub(r'\D', '', s)  # \D matches any non-digit character
+
 
 
 
