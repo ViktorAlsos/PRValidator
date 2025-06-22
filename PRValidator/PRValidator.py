@@ -1,4 +1,5 @@
 import re
+import regex
 from datetime import datetime
 from openpyxl import load_workbook
 import shutil
@@ -76,11 +77,14 @@ def find_errors(path):
         error_string += validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
 
         if(archiveCreator is None):
-            error_string += f'Manglende personnummer på linje {row[0].row}\n'
+            error_string += f'Manglende arkivskaper på linje {row[0].row}\n'
 
         error_string += validateBirthDate(birthDate=birthDate, row=row[0].row)
         # error_string += validatePersonnr(personnr=personnr, row=row[0].row)
-        error_string += validateNames(lastName=lastName, firstName=firstName, middleName=middleName, row=row[0].row)
+        error_string += validate_last_name(lastName, row[0].row)
+        error_string += validate_first_name(firstName, row[0].row)
+        error_string += validate_middle_name(middleName, row[0].row)
+
         
     return error_string
 
@@ -137,30 +141,34 @@ def validatePersonnr(personnr, row):
     
     return ""
 
-def validateNames(lastName, firstName, middleName, row):
-    text = ""
-    navnFormat = r'^[A-Za-zÆØÅæøå]+([\- ][A-Za-zÆØÅæøå]+)*$'
+navnFormat = r'^[\p{L}]+([\-\' ][\p{L}]+)*$'
 
-    if(lastName):
+def validate_last_name(lastName, row):
+    text = ""
+    if lastName:
         lastName = lastName.strip()
-    if middleName:
-        middleName = middleName.strip()
+    if lastName is None or lastName == "":
+        text += f'Manglende etternavn på linje {row}\n'
+    elif not regex.fullmatch(navnFormat, lastName):
+        text += f'Feil format på etternavn på linje {row}\n'
+    return text
+
+def validate_first_name(firstName, row):
+    text = ""
     if firstName:
         firstName = firstName.strip()
-
-    if(lastName is None):
-        text += f'Manglende etternavn på linje {row}\n'
-    elif not re.match(navnFormat, lastName):
-        text += f'Feil format på etternavn på linje {row}\n'
-
-    if(firstName is None):
+    if firstName is None or firstName == "":
         text += f'Manglende fornavn på linje {row}\n'
-    elif not re.match(navnFormat, firstName):
+    elif not regex.fullmatch(navnFormat, firstName):
         text += f'Feil format på forrnavn på linje {row}\n'
+    return text
 
-    if(middleName is not None and not re.match(navnFormat, middleName)):
-        text += f'Mellomnavn på feil format på linje {row}\n'
-
+def validate_middle_name(middleName, row):
+    text = ""
+    if middleName:
+        middleName = middleName.strip()
+        if not regex.fullmatch(navnFormat, middleName):
+            text += f'Mellomnavn på feil format på linje {row}\n'
     return text
 
 def fix_errors(path):
@@ -168,8 +176,10 @@ def fix_errors(path):
     wb = load_workbook(copy_path)
     ws = wb.active
 
+    #Korrigerer dato
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
         birthDate = row[3].value
+        
 
         if(isinstance(birthDate, datetime)):
             birthDate = birthDate.strftime('%d%m%Y')
@@ -182,7 +192,27 @@ def fix_errors(path):
         if(validateBirtDateFormat(birthDate)):
             fixed = fix_birthDate(birthDate)
             ws.cell(row=row[0].row, column=4).value = fixed
-            
+
+    # Korrigerer navn
+    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+        lastName = row[5].value
+        firstName = row[6].value
+        middleName = row[7].value
+
+        if(lastName):
+            if(validate_last_name):
+                fixed_lname = clean_name(lastName)
+                ws.cell(row=row[0].row, column=6).value = fixed_lname
+
+        if(firstName):
+            if(validate_first_name):
+                fixed_fname = clean_name(firstName)
+                ws.cell(row=row[0].row, column=7).value = fixed_fname
+        if(middleName):
+            if(validate_middle_name):
+                fixed_mname = clean_name(middleName)
+                ws.cell(row=row[0].row, column=8).value = fixed_mname
+
 
     wb.save(copy_path)
     return "Korrigert fil lagret til: " + copy_path
@@ -221,7 +251,17 @@ def fix_birthDate(birthDate):
 def strip_non_numeric(s):
     return re.sub(r'\D', '', s)  # \D matches any non-digit character
 
+def clean_name(s):
+    # Keep only allowed characters
+    s = regex.sub(r"[^\p{L}\-'. ]", '', s)
+    # Collapse repeated dashes, spaces, or periods
+    s = re.sub(r'[-]{2,}', '-', s)
+    s = re.sub(r'[.]{2,}', '.', s)
+    s = re.sub(r'[ ]{2,}', ' ', s)
+    s = re.sub(r'\s*-\s*', '-', s)
 
+    # Trim unwanted characters at ends
+    return s.strip(' -')
 
 
 # fix_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx')
