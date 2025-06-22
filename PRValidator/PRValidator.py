@@ -49,6 +49,8 @@ kommuneInfo = {
     1875: 'Hamarøy'
 }
 
+mappeTyper = {"TT", "B", "BHG", "E", "F", "J", "K", "P", "PPT", "MM"}
+
 
 def find_errors(path):
     wb = load_workbook(path)
@@ -84,6 +86,10 @@ def find_errors(path):
         error_string += validate_last_name(lastName, row[0].row)
         error_string += validate_first_name(firstName, row[0].row)
         error_string += validate_middle_name(middleName, row[0].row)
+        error_string += validate_no_of_dir(noOfDir, row[0].row)
+        error_string += validate_box(box, row[0].row)
+        error_string += validate_dir_type(dirType, row[0].row)
+        error_string += validate_mors_date(morsDate, row[0].row)
 
         
     return error_string
@@ -125,13 +131,13 @@ def validateBirthDate(birthDate, row):
         return f'Manglende fødseldato på rad: {row}\n'
         
 
-    elif validateBirtDateFormat(birthDate):
+    elif validateDateFormat(birthDate):
         return f'Feil format på fødselsdato på rad: {row}\n'
     
     return ""
 
-def validateBirtDateFormat(birthDate):
-    return not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', birthDate)
+def validateDateFormat(date):
+    return not re.match(r'^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[0-2])\d{4}$', date)
 
 def validatePersonnr(personnr, row):
     if(personnr is None):
@@ -171,6 +177,37 @@ def validate_middle_name(middleName, row):
             text += f'Mellomnavn på feil format på linje {row}\n'
     return text
 
+def validate_no_of_dir(noOfDir, row):
+    pattern = r'^[1-9][0-9]*$'
+    if not noOfDir:
+        return f'Manglende Antall Mapper på rad {row}\n'
+    if not re.fullmatch(pattern, str(noOfDir)):
+        return f'Feil format på Antall Mapper på rad {row}\n'
+    
+    return ""
+    
+def validate_box(box, row):
+    pattern = r'^[1-9][0-9]*$'
+    if not box:
+        return f'Manglende boks på rad {row}\n'
+    if not re.fullmatch(pattern, str(box)):
+        return f'Feil format på boks på rad {row}\n'
+    
+    return ""
+    
+def validate_dir_type(dirType, row):
+    if dirType not in mappeTyper:
+        return f'Feil eller manglende mappetype på linje {row}\n'
+    return ""
+    
+def validate_mors_date(morsDate, row):
+    if not morsDate:
+        return ""
+    if validateDateFormat(morsDate):
+        return f'Feil morsdato på linje {row}\n'
+
+
+
 def fix_errors(path):
     copy_path = copy_excel_file(path)
     wb = load_workbook(copy_path)
@@ -189,8 +226,8 @@ def fix_errors(path):
 
         birthDate = str(birthDate)
 
-        if(validateBirtDateFormat(birthDate)):
-            fixed = fix_birthDate(birthDate)
+        if(validateDateFormat(birthDate)):
+            fixed = fix_date(birthDate)
             ws.cell(row=row[0].row, column=4).value = fixed
 
     # Korrigerer navn
@@ -198,6 +235,7 @@ def fix_errors(path):
         lastName = row[5].value
         firstName = row[6].value
         middleName = row[7].value
+        morsDate = row[11].value
 
         if(lastName):
             if(validate_last_name):
@@ -212,6 +250,9 @@ def fix_errors(path):
             if(validate_middle_name):
                 fixed_mname = clean_name(middleName)
                 ws.cell(row=row[0].row, column=8).value = fixed_mname
+        
+        if(morsDate):
+            ws.cell(row=row[0].row, column=12).value = fix_date(morsDate)
 
 
     wb.save(copy_path)
@@ -237,15 +278,15 @@ def copy_excel_file(source_path):
     return copy_path
 
 
-def fix_birthDate(birthDate):
+def fix_date(date):
 
-    birthDate = strip_non_numeric(birthDate)
+    date = strip_non_numeric(date)
     
-    if(validateBirtDateFormat(birthDate)):
-        print("Kunne ikke korrigere: " + birthDate)
+    if(validateDateFormat(date)):
+        print("Kunne ikke korrigere: " + date)
 
 
-    return birthDate
+    return date
 
 
 def strip_non_numeric(s):
