@@ -141,9 +141,9 @@ def validateDateFormat(date):
 
 def validatePersonnr(personnr, row):
     if(personnr is None):
-        return f'Manglende personnummer på linje {row}\n'
+        return f'Manglende personnummer på rad: {row}\n'
     elif not re.match(r'^\d{5}$', str(personnr)):
-        return f'Feil personnummer på linje {row} Verdi: {personnr}\n'
+        return f'Feil personnummer på rad: {row} Verdi: {personnr}\n'
     
     return ""
 
@@ -154,9 +154,9 @@ def validate_last_name(lastName, row):
     if lastName:
         lastName = lastName.strip()
     if lastName is None or lastName == "":
-        text += f'Manglende etternavn på linje {row}\n'
+        text += f'Manglende etternavn på rad: {row}\n'
     elif not regex.fullmatch(navnFormat, lastName):
-        text += f'Feil format på etternavn på linje {row}\n'
+        text += f'Feil format på etternavn på rad: {row}\n'
     return text
 
 def validate_first_name(firstName, row):
@@ -164,9 +164,9 @@ def validate_first_name(firstName, row):
     if firstName:
         firstName = firstName.strip()
     if firstName is None or firstName == "":
-        text += f'Manglende fornavn på linje {row}\n'
+        text += f'Manglende fornavn på rad: {row}\n'
     elif not regex.fullmatch(navnFormat, firstName):
-        text += f'Feil format på forrnavn på linje {row}\n'
+        text += f'Feil format på forrnavn på rad: {row}\n'
     return text
 
 def validate_middle_name(middleName, row):
@@ -174,37 +174,37 @@ def validate_middle_name(middleName, row):
     if middleName:
         middleName = middleName.strip()
         if not regex.fullmatch(navnFormat, middleName):
-            text += f'Mellomnavn på feil format på linje {row}\n'
+            text += f'Mellomnavn på feil format på rad: {row}\n'
     return text
 
 def validate_no_of_dir(noOfDir, row):
     pattern = r'^[1-9][0-9]*$'
     if not noOfDir:
-        return f'Manglende Antall Mapper på rad {row}\n'
+        return f'Manglende Antall Mapper på rad: {row}\n'
     if not re.fullmatch(pattern, str(noOfDir)):
-        return f'Feil format på Antall Mapper på rad {row}\n'
+        return f'Feil format på Antall Mapper på rad: {row}\n'
     
     return ""
     
 def validate_box(box, row):
     pattern = r'^[1-9][0-9]*$'
     if not box:
-        return f'Manglende boks på rad {row}\n'
+        return f'Manglende boks på rad: {row}\n'
     if not re.fullmatch(pattern, str(box)):
-        return f'Feil format på boks på rad {row}\n'
+        return f'Feil format på boks på rad: {row}\n'
     
     return ""
     
 def validate_dir_type(dirType, row):
     if dirType not in mappeTyper:
-        return f'Feil eller manglende mappetype på linje {row}\n'
+        return f'Feil eller manglende mappetype på rad: {row}\n'
     return ""
     
 def validate_mors_date(morsDate, row):
     if not morsDate:
         return ""
     if validateDateFormat(morsDate):
-        return f'Feil morsdato på linje {row}\n'
+        return f'Feil morsdato på rad: {row}\n'
 
 
 
@@ -212,9 +212,12 @@ def fix_errors(path):
     copy_path = copy_excel_file(path)
     wb = load_workbook(copy_path)
     ws = wb.active
+    text = ""
+    output_text = ""
 
     #Korrigerer dato
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
+
         birthDate = row[3].value
         
 
@@ -227,8 +230,9 @@ def fix_errors(path):
         birthDate = str(birthDate)
 
         if(validateDateFormat(birthDate)):
-            fixed = fix_date(birthDate)
+            fixed, message = fix_date(birthDate, row[0].row)
             ws.cell(row=row[0].row, column=4).value = fixed
+            output_text += message
 
     # Korrigerer navn
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
@@ -252,11 +256,16 @@ def fix_errors(path):
                 ws.cell(row=row[0].row, column=8).value = fixed_mname
         
         if(morsDate):
-            ws.cell(row=row[0].row, column=12).value = fix_date(morsDate)
+            fixed, message = fix_date(morsDate, row[0].row)
+            ws.cell(row=row[0].row, column=12).value = fixed
+            output_text += message
 
 
     wb.save(copy_path)
-    return "Korrigert fil lagret til: " + copy_path
+    text += "Korrigert fil lagret til: " + copy_path + "\n"
+    text += output_text
+    return text
+
 
 
 def copy_excel_file(source_path):
@@ -278,15 +287,18 @@ def copy_excel_file(source_path):
     return copy_path
 
 
-def fix_date(date):
+def fix_date(date, row):
 
     date = strip_non_numeric(date)
+
+    message = ""
     
     if(validateDateFormat(date)):
-        print("Kunne ikke korrigere: " + date)
+        message = f'Kunne ikke korrigere: {date} på rad: {row} \n'
 
 
-    return date
+
+    return date, message
 
 
 def strip_non_numeric(s):
