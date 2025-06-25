@@ -1,3 +1,5 @@
+from configparser import ConfigParser
+import json
 import re
 import regex
 from datetime import datetime
@@ -5,51 +7,18 @@ from openpyxl import load_workbook
 import shutil
 import os
 
-kommuneInfo = {
-    1804: 'Bodø',
-    1806: 'Narvik',
-    1811: 'Bindal',
-    1812: 'Sømna',
-    1813: 'Brønnøy',
-    1815: 'Vega',
-    1816: 'Vevelstad',
-    1818: 'Herøy',
-    1820: 'Alstahaug',
-    1822: 'Leirfjord',
-    1824: 'Vefsn',
-    1825: 'Grane',
-    1826: 'Hattfjelldal',
-    1827: 'Dønna',
-    1828: 'Nesna',
-    1832: 'Hemnes',
-    1833: 'Rana',
-    1834: 'Lurøy',
-    1835: 'Træna',
-    1836: 'Rødøy',
-    1837: 'Meløy',
-    1838: 'Gildeskål',
-    1839: 'Beiarn',
-    1840: 'Saltdal',
-    1841: 'Fauske',
-    1845: 'Sørfold',
-    1848: 'Steigen',
-    1851: 'Lødingen',
-    1853: 'Evenes',
-    1856: 'Røst',
-    1857: 'Værøy',
-    1859: 'Flakstad',
-    1860: 'Vestvågøy',
-    1865: 'Vågan',
-    1866: 'Hadsel',
-    1867: 'Bø',
-    1868: 'Øksnes',
-    1870: 'Sortland',
-    1871: 'Andøy',
-    1874: 'Moskenes',
-    1875: 'Hamarøy'
-}
 
-mappeTyper = {"TT", "B", "BHG", "E", "F", "J", "K", "P", "PPT", "MM"}
+basedir = os.path.dirname(__file__)
+config = ConfigParser()
+
+with open('config.ini', encoding='utf-8') as f:
+    config.read_file(f)
+
+kommuneInfo = json.loads(config.get("VARS", "kommuneInfo"))
+mappeTyper = json.loads(config.get("VARS", "mappeTyper"))
+
+#For å konvertere nøklene tilbake til int, for må være string i json format
+kommuneInfo = {int(k): v for k, v in kommuneInfo.items()}
 
 
 def find_errors(path, checkKommune, checkDato, checkPersonnr, checkNavn):
