@@ -52,7 +52,7 @@ kommuneInfo = {
 mappeTyper = {"TT", "B", "BHG", "E", "F", "J", "K", "P", "PPT", "MM"}
 
 
-def find_errors(path):
+def find_errors(path, checkKommune, checkDato, checkPersonnr, checkNavn):
     wb = load_workbook(path)
     ws = wb.active
 
@@ -75,22 +75,25 @@ def find_errors(path):
         dirSharedWith = row[12].value
 
 
-
-        error_string += validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
+        if checkKommune:
+            error_string += validateKommune(kommune=kommune, kommunenr=kommunenr, row=row[0].row)
 
         if(archiveCreator is None):
             error_string += f'Manglende arkivskaper på linje {row[0].row}\n'
 
-        error_string += validateBirthDate(birthDate=birthDate, row=row[0].row)
-        # error_string += validatePersonnr(personnr=personnr, row=row[0].row)
-        error_string += validate_last_name(lastName, row[0].row)
-        error_string += validate_first_name(firstName, row[0].row)
-        error_string += validate_middle_name(middleName, row[0].row)
+        if checkDato:
+            error_string += validateBirthDate(birthDate=birthDate, row=row[0].row)
+        if checkPersonnr:
+            error_string += validatePersonnr(personnr=personnr, row=row[0].row)
+
+        if checkNavn:  
+            error_string += validate_last_name(lastName, row[0].row)
+            error_string += validate_first_name(firstName, row[0].row)
+            error_string += validate_middle_name(middleName, row[0].row)
         error_string += validate_no_of_dir(noOfDir, row[0].row)
         error_string += validate_box(box, row[0].row)
         error_string += validate_dir_type(dirType, row[0].row)
         error_string += validate_mors_date(morsDate, row[0].row)
-
         
     return error_string
 

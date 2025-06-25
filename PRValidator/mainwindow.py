@@ -30,7 +30,11 @@ class MainWindow(QMainWindow):
 
     def validate(self):
         fileName = self.ui.line_file.text()
-        self.ui.text_result.setPlainText(find_errors(fileName))
+        kommune = self.ui.checkKommune.isChecked()
+        dato = self.ui.checkDato.isChecked()
+        personnr = self.ui.checkPersonnr.isChecked()
+        navn = self.ui.checkNavn.isChecked()
+        self.ui.text_result.setPlainText(find_errors(fileName, kommune, dato, personnr, navn))
         self.ui.text_result.update()
 
     def fix(self):

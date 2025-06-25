@@ -16,9 +16,10 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QMainWindow,
-    QMenu, QMenuBar, QPushButton, QSizePolicy,
-    QStatusBar, QTextEdit, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLineEdit,
+    QMainWindow, QMenu, QMenuBar, QPushButton,
+    QSizePolicy, QStatusBar, QTextEdit, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -61,6 +62,40 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.horizontalLayout_9.setContentsMargins(20, -1, 20, -1)
+        self.checkKommune = QCheckBox(self.centralwidget)
+        self.checkKommune.setObjectName(u"checkKommune")
+        self.checkKommune.setChecked(True)
+
+        self.horizontalLayout_9.addWidget(self.checkKommune)
+
+        self.checkDato = QCheckBox(self.centralwidget)
+        self.checkDato.setObjectName(u"checkDato")
+        self.checkDato.setChecked(True)
+        self.checkDato.setTristate(False)
+
+        self.horizontalLayout_9.addWidget(self.checkDato)
+
+        self.checkPersonnr = QCheckBox(self.centralwidget)
+        self.checkPersonnr.setObjectName(u"checkPersonnr")
+        self.checkPersonnr.setChecked(True)
+
+        self.horizontalLayout_9.addWidget(self.checkPersonnr)
+
+        self.checkNavn = QCheckBox(self.centralwidget)
+        self.checkNavn.setObjectName(u"checkNavn")
+        self.checkNavn.setChecked(True)
+
+        self.horizontalLayout_9.addWidget(self.checkNavn)
+
+        self.horizontalLayout_9.setStretch(0, 10)
+        self.horizontalLayout_9.setStretch(1, 10)
+        self.horizontalLayout_9.setStretch(2, 10)
+
+        self.verticalLayout.addLayout(self.horizontalLayout_9)
+
         self.text_result = QTextEdit(self.centralwidget)
         self.text_result.setObjectName(u"text_result")
         self.text_result.setEnabled(True)
@@ -92,6 +127,10 @@ class Ui_MainWindow(object):
         self.btn_file.setText(QCoreApplication.translate("MainWindow", u"Last opp fil", None))
         self.btn_validate.setText(QCoreApplication.translate("MainWindow", u"Valider felter", None))
         self.btn_fix.setText(QCoreApplication.translate("MainWindow", u"Korriger felter", None))
+        self.checkKommune.setText(QCoreApplication.translate("MainWindow", u"Valider kommune", None))
+        self.checkDato.setText(QCoreApplication.translate("MainWindow", u"Valider f\u00f8dselsdato", None))
+        self.checkPersonnr.setText(QCoreApplication.translate("MainWindow", u"Valider personnummer", None))
+        self.checkNavn.setText(QCoreApplication.translate("MainWindow", u"Valider navn", None))
         self.menuPRValidator.setTitle(QCoreApplication.translate("MainWindow", u"PRValidator ", None))
     # retranslateUi
 
