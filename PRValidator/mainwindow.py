@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         fileName, _ = QFileDialog.getOpenFileName(self, "Select File", "", "All Files (*);;Python Files (*.py)", options=options)
         if fileName:
             self.ui.line_file.setText(fileName)
+            self.ui.text_result.setPlainText("")
 
     def validate(self):
         fileName = self.ui.line_file.text()
