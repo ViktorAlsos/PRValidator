@@ -191,41 +191,42 @@ def fix_errors(path):
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
 
         birthDate = row[3].value
+        personnr = row[4].value
+        lastName = row[5].value
+        firstName = row[6].value
+        middleName = row[7].value
+        morsDate = row[11].value
         
 
         if(isinstance(birthDate, datetime)):
             birthDate = birthDate.strftime('%d%m%Y')
 
-        if birthDate is None:
-            continue
+        if birthDate is not None:
+            
 
-        birthDate = str(birthDate)
+            birthDate = str(birthDate)
 
-        if(validateDateFormat(birthDate)):
-            fixed, message = fix_date(birthDate, row[0].row)
-            ws.cell(row=row[0].row, column=4).value = fixed
-            output_text += message
-
-    # Korrigerer navn
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=ws.max_column):
-        lastName = row[5].value
-        firstName = row[6].value
-        middleName = row[7].value
-        morsDate = row[11].value
+            if(validateDateFormat(birthDate)):
+                fixed, message = fix_date(birthDate, row[0].row)
+                ws.cell(row=row[0].row, column=4).value = fixed
+                output_text += message
 
         if(lastName):
             if(validate_last_name):
-                fixed_lname = clean_name(lastName)
+                fixed_lname, message = clean_name(lastName, row[0].row)
                 ws.cell(row=row[0].row, column=6).value = fixed_lname
+                output_text += message
 
         if(firstName):
             if(validate_first_name):
-                fixed_fname = clean_name(firstName)
+                fixed_fname, message = clean_name(firstName, row[0].row)
                 ws.cell(row=row[0].row, column=7).value = fixed_fname
+                output_text += message
         if(middleName):
             if(validate_middle_name):
-                fixed_mname = clean_name(middleName)
+                fixed_mname, message = clean_name(middleName, row[0].row)
                 ws.cell(row=row[0].row, column=8).value = fixed_mname
+                output_text += message
         
         if(morsDate):
             fixed, message = fix_date(morsDate, row[0].row)
@@ -265,7 +266,7 @@ def fix_date(date, row):
 
     message = ""
     
-    if(validateDateFormat(date)):
+    if(date and validateDateFormat(date)):
         message = f'Kunne ikke korrigere: {date} på rad: {row} \n'
 
 
@@ -276,7 +277,7 @@ def fix_date(date, row):
 def strip_non_numeric(s):
     return re.sub(r'\D', '', s)  # \D matches any non-digit character
 
-def clean_name(s):
+def clean_name(s, row):
     # Keep only allowed characters
     s = regex.sub(r"[^\p{L}\-'. ]", '', s)
     # Collapse repeated dashes, spaces, or periods
@@ -285,8 +286,13 @@ def clean_name(s):
     s = re.sub(r'[ ]{2,}', ' ', s)
     s = re.sub(r'\s*-\s*', '-', s)
 
+    message = ""
+
+    if(validate_middle_name(s, row)):
+        message = f'Kunne ikke korrigere: {s} på rad {row}\n'
+
     # Trim unwanted characters at ends
-    return s.strip(' -')
+    return s.strip(' -'), message
 
 
 # fix_errors('D:/Viktor/Bodø kommune. Barnehagekontoret. Fa 1-45. AKS_23_157_7.xlsx')
