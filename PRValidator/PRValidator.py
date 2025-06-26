@@ -4,6 +4,7 @@ import re
 import regex
 from datetime import datetime
 from openpyxl import load_workbook
+from openpyxl.utils.exceptions import InvalidFileException
 import shutil
 import os
 
@@ -22,7 +23,12 @@ kommuneInfo = {int(k): v for k, v in kommuneInfo.items()}
 
 
 def find_errors(path, checkKommune, checkDato, checkPersonnr, checkNavn):
-    wb = load_workbook(path)
+
+    try:
+        wb = load_workbook(path)
+    except InvalidFileException:
+        return "FEIL: Manglende fil eller feil filtype"
+
     ws = wb.active
 
     error_string = ""
@@ -181,8 +187,18 @@ def validate_mors_date(morsDate, row):
 
 
 def fix_errors(path):
-    copy_path = copy_excel_file(path)
-    wb = load_workbook(copy_path)
+    try:
+        copy_path = copy_excel_file(path)
+    except FileNotFoundError:
+        return "FEIL: Manglende fil"
+    except PermissionError:
+        return "FEIL: Korrigert fil allerede åpen.\nVennligst lukk filen og prøv igjen."
+    
+
+    try:
+        wb = load_workbook(path)
+    except InvalidFileException:
+        return "FEIL: Manglende fil eller feil filtype"
     ws = wb.active
     text = ""
     output_text = ""
@@ -232,7 +248,6 @@ def fix_errors(path):
             fixed, message = fix_date(morsDate, row[0].row)
             ws.cell(row=row[0].row, column=12).value = fixed
             output_text += message
-
 
     wb.save(copy_path)
     text += "Korrigert fil lagret til: " + copy_path + "\n"
