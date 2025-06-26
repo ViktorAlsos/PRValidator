@@ -11,15 +11,13 @@
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
-    QIcon, QImage, QKeySequence, QLinearGradient,
-    QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLineEdit,
-    QMainWindow, QMenu, QMenuBar, QPushButton,
-    QSizePolicy, QStatusBar, QTextEdit, QVBoxLayout,
-    QWidget)
+    QMainWindow, QPushButton, QSizePolicy, QStatusBar,
+    QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -105,17 +103,9 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.text_result)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 800, 25))
-        self.menuPRValidator = QMenu(self.menubar)
-        self.menuPRValidator.setObjectName(u"menuPRValidator")
-        MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
-        self.menubar.addAction(self.menuPRValidator.menuAction())
 
         self.retranslateUi(MainWindow)
 
@@ -123,7 +113,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"PRValidator", None))
         self.btn_file.setText(QCoreApplication.translate("MainWindow", u"Last opp fil", None))
         self.btn_validate.setText(QCoreApplication.translate("MainWindow", u"Valider felter", None))
         self.btn_fix.setText(QCoreApplication.translate("MainWindow", u"Korriger felter", None))
@@ -131,6 +121,5 @@ class Ui_MainWindow(object):
         self.checkDato.setText(QCoreApplication.translate("MainWindow", u"Valider f\u00f8dselsdato", None))
         self.checkPersonnr.setText(QCoreApplication.translate("MainWindow", u"Valider personnummer", None))
         self.checkNavn.setText(QCoreApplication.translate("MainWindow", u"Valider navn", None))
-        self.menuPRValidator.setTitle(QCoreApplication.translate("MainWindow", u"PRValidator ", None))
     # retranslateUi
 
