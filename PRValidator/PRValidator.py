@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 import json
 import re
+import sys
 import regex
 from datetime import datetime
 from openpyxl import load_workbook
@@ -8,11 +9,17 @@ from openpyxl.utils.exceptions import InvalidFileException
 import shutil
 import os
 
+#AI generert kode
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and PyInstaller """
+    if hasattr(sys, '_MEIPASS'):  # When running from PyInstaller bundle
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 basedir = os.path.dirname(__file__)
 config = ConfigParser()
 
-with open('config.ini', encoding='utf-8') as f:
+with open(resource_path("config.ini"), encoding="utf-8-sig") as f:
     config.read_file(f)
 
 kommuneInfo = json.loads(config.get("VARS", "kommuneInfo"))
@@ -227,6 +234,12 @@ def fix_errors(path):
                 ws.cell(row=row[0].row, column=4).value = fixed
                 output_text += message
 
+        if(personnr is not None):
+            personnr = str(personnr).strip()
+        if personnr and validatePersonnr(personnr, row[0].row):
+            fixed = strip_non_numeric(personnr)
+            ws.cell(row=row[0].row, column=5).value = fixed
+
         if(lastName):
             if(validate_last_name):
                 fixed_lname, message = clean_name(lastName, row[0].row)
@@ -282,7 +295,7 @@ def fix_date(date, row):
     message = ""
     
     if(date and validateDateFormat(date)):
-        message = f'Kunne ikke korrigere: {date} på rad: {row} \n'
+        message = f'Kunne ikke korrigere dato: {date} på rad: {row} \n'
 
 
 
@@ -304,7 +317,7 @@ def clean_name(s, row):
     message = ""
 
     if(validate_middle_name(s, row)):
-        message = f'Kunne ikke korrigere: {s} på rad {row}\n'
+        message = f'Kunne ikke korrigere navn: {s} på rad {row}\n'
 
     # Trim unwanted characters at ends
     return s.strip(' -'), message
